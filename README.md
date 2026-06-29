@@ -1,0 +1,36 @@
+# Toolbox
+
+好用的在线工具合集 —— 哈希、编码、加密、文本转换、二维码生成、文字转写等。
+
+## 功能
+
+| 分类 | 工具 |
+|---|---|
+| **哈希** | MD5, CRC32, SHA-1/256/512, SHA3-256 |
+| **编码** | Base64, Hex, URL, Unicode 编解码 |
+| **加密** | AES, DES（支持 CBC/ECB/CFB/OFB/CTR 模式） |
+| **转换** | JSON 格式化/压缩, 大小写转换, 进制转换, 时间戳转换 |
+| **工具** | 二维码生成, 文本统计, 文字转写 |
+| **文字转写** | 拉丁字母 / 西里尔 / 希腊 / 阿拉伯 / 希伯来 / 亚美尼亚 / 格鲁吉亚 / 阿姆哈拉 / 天城文 / 孟加拉 / 古木基 / 古吉拉特 / 奥里亚 / 泰米尔 / 泰卢固 / 卡纳达 / 马拉雅拉姆 / 僧伽罗 / 泰文 / 平假名 / 片假名 / 韩文 / 中文拼音 / 伪中国语 |
+
+## 技术栈
+
+- [Svelte 5](https://svelte.dev/)
+- [Vite](https://vitejs.dev/)
+- [Tailwind CSS](https://tailwindcss.com/) + [DaisyUI](https://daisyui.com/)
+- [TypeScript](https://www.typescriptlang.org/)
+
+## 开发
+
+```bash
+npm install
+npm run dev
+```
+
+## 构建
+
+```bash
+npm run build
+```
+
+构建产物输出到 `dist/` 目录。
