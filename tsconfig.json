@@ -11,7 +11,7 @@
     "moduleResolution": "bundler",
     "module": "esnext",
     "target": "esnext",
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
 }

@@ -3,12 +3,12 @@ import { toggleEnc } from "./fields";
 import type { ToolDef } from "./index";
 
 function base64Encode(s: string) {
-  return btoa(s);
+  return btoa(unescape(encodeURIComponent(s)));
 }
 
 function base64Decode(s: string) {
   try {
-    return atob(s);
+    return decodeURIComponent(escape(atob(s)));
   } catch {
     return "无效的 Base64";
   }

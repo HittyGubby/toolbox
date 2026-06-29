@@ -94,6 +94,7 @@
   function onInput() {
     saveState();
     if (autoMode && input.trim()) convert();
+    else if (!input.trim()) output = "";
   }
 
   function onParamChange(key: string, val: string) {
@@ -164,7 +165,7 @@
   onclick={() => (openDropdown = null)}
 />
 
-<div class="flex flex-col min-h-screen bg-base-200">
+<div class="flex flex-col h-dvh overflow-hidden bg-base-200">
   <header class="bg-base-100 border-b border-base-300 sticky top-0 z-30 w-full">
     <div class="flex items-center justify-between px-4 py-3 w-full">
       <a
@@ -179,9 +180,11 @@
         {#each groups as g}
           <div class="relative">
             <button
-               class="btn btn-ghost rounded-none border-b-2 whitespace-nowrap {activeInGroup(g)
-                 ? 'border-primary text-primary'
-                 : 'border-transparent'}"
+              class="btn btn-ghost rounded-none border-b-2 whitespace-nowrap {activeInGroup(
+                g,
+              )
+                ? 'border-primary text-primary'
+                : 'border-transparent'}"
               onclick={(e) => {
                 e.stopPropagation();
                 openDropdown = openDropdown === g.id ? null : g.id;
@@ -241,7 +244,7 @@
     </div>
   </header>
 
-  <main class="flex-1 flex flex-col p-3 gap-3">
+  <main class="flex-1 flex flex-col p-3 gap-3 overflow-hidden">
     <div
       class="flex flex-col md:grid md:grid-cols-[1fr_auto_1fr] gap-3 flex-1 min-h-0"
     >
@@ -254,39 +257,39 @@
       </div>
 
       <div
-        class="flex flex-row flex-wrap md:flex-col items-stretch md:justify-center gap-2 py-2 w-full md:w-60"
+        class="grid grid-cols-2 md:flex md:flex-col items-stretch md:justify-center gap-2 py-2 w-full md:w-60 [&:has(>:nth-child(5))>:last-child:nth-child(even)]:col-span-2"
       >
-        <div class="join flex-1 min-w-0 md:flex-none">
+        <div class="join w-full md:flex-none">
           <button
-            class="btn join-item flex-1 {!autoMode
+            class="btn join-item flex-1 whitespace-nowrap {!autoMode
               ? 'btn-primary'
               : 'btn-soft'}"
             onclick={() => setAutoMode(false)}>手动</button
           >
           <button
-            class="btn join-item flex-1 {autoMode ? 'btn-primary' : 'btn-soft'}"
+            class="btn join-item flex-1 whitespace-nowrap {autoMode
+              ? 'btn-primary'
+              : 'btn-soft'}"
             onclick={() => setAutoMode(true)}>自动</button
           >
         </div>
         <button
-          class="btn btn-primary flex-1 min-w-0 md:flex-none"
+          class="btn btn-primary w-full md:flex-none"
           onclick={convert}
           disabled={processing}
         >
           <Play class="w-4 h-4 shrink-0" />
           {processing ? "处理中..." : "转换"}
         </button>
-        <button class="btn btn-soft flex-1 min-w-0 md:flex-none" onclick={swap}>
+        <button class="btn btn-soft w-full md:flex-none" onclick={swap}>
           <ArrowRightLeft class="w-4 h-4 shrink-0" /> 交换
         </button>
-        {#if output}
-          <button
-            class="btn btn-soft flex-1 min-w-0 md:flex-none"
-            onclick={() => navigator.clipboard.writeText(output)}
-          >
-            <Copy class="w-4 h-4 shrink-0" /> 复制
-          </button>
-        {/if}
+        <button
+          class="btn btn-soft w-full md:flex-none"
+          onclick={() => navigator.clipboard.writeText(output)}
+        >
+          <Copy class="w-4 h-4 shrink-0" /> 复制
+        </button>
 
         {#if activeTool.params.length > 0}
           <hr class="border-base-300 my-1 w-full hidden md:block" />

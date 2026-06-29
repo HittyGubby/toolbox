@@ -6,7 +6,7 @@ export const extraTools: ToolDef[] = [
   {
     id: "qr",
     name: "二维码",
-    params: [fieldQrSize, fieldQrDark, fieldQrLight],
+    params: [fieldQrDark, fieldQrLight, fieldQrSize],
     compute: async (i, p) =>
       QRCode.toDataURL(i, {
         width: +p.size,

@@ -3,10 +3,18 @@ import { toHiragana, toKatakana } from "wanakana";
 import Sanscript from "@indic-transliteration/sanscript";
 import { assemble } from "es-hangul";
 import { pinyin as pinyinPro } from "pinyin-pro";
+import OpenCC from "opencc-js";
 import type { ToolDef, ParamField } from "./index";
+
+const cvtS2t = OpenCC.Converter({ from: "cn", to: "twp" });
+const cvtT2s = OpenCC.Converter({ from: "twp", to: "cn" });
 
 // ──── Mapping tables: Latin → Target script ────
 const latinToGreek: Record<string, string> = {
+  TH: "Θ",
+  CH: "Χ",
+  PS: "Ψ",
+  KS: "Ξ",
   th: "θ",
   ch: "χ",
   ps: "ψ",
@@ -54,6 +62,11 @@ const latinToGreek: Record<string, string> = {
 };
 
 const latinToArabic: Record<string, string> = {
+  TH: "ث",
+  KH: "خ",
+  DH: "ذ",
+  SH: "ش",
+  GH: "غ",
   th: "ث",
   kh: "خ",
   dh: "ذ",
@@ -61,52 +74,96 @@ const latinToArabic: Record<string, string> = {
   gh: "غ",
   "'": "ع",
   "`": "ء",
+  A: "ا",
   a: "ا",
+  B: "ب",
   b: "ب",
   t: "ت",
+  J: "ج",
   j: "ج",
-  h: "ه",
   H: "ح",
+  h: "ه",
+  D: "ض",
   d: "د",
+  R: "ر",
   r: "ر",
   z: "ز",
-  s: "س",
   S: "ص",
-  D: "ض",
+  s: "س",
   T: "ط",
   Z: "ظ",
+  F: "ف",
   f: "ف",
+  Q: "ق",
   q: "ق",
+  K: "ك",
   k: "ك",
+  L: "ل",
   l: "ل",
+  M: "م",
   m: "م",
+  N: "ن",
   n: "ن",
+  W: "و",
   w: "و",
+  Y: "ي",
   y: "ي",
+  I: "ي",
+  i: "ي",
+  E: "ا",
+  e: "ا",
+  O: "و",
+  o: "و",
+  U: "و",
+  u: "و",
 };
 
 const latinToHebrew: Record<string, string> = {
+  SH: "שׁ",
   sh: "שׁ",
-  ts: "צ",
   tz: "צ",
+  ts: "צ",
+  A: "א",
   a: "א",
+  B: "ב",
   b: "ב",
+  G: "ג",
   g: "ג",
+  D: "ד",
   d: "ד",
-  h: "ה",
-  w: "ו",
-  z: "ז",
   H: "ח",
+  h: "ה",
+  W: "ו",
+  w: "ו",
+  Z: "ז",
+  z: "ז",
   T: "ט",
+  Y: "י",
   y: "י",
+  I: "י",
+  i: "י",
+  E: "א",
+  e: "א",
+  K: "כ",
   k: "כ",
+  L: "ל",
   l: "ל",
+  M: "מ",
   m: "מ",
+  N: "נ",
   n: "נ",
+  S: "ס",
   s: "ס",
+  P: "פ",
   p: "פ",
+  Q: "ק",
   q: "ק",
+  R: "ר",
   r: "ר",
+  O: "ו",
+  o: "ו",
+  U: "ו",
+  u: "ו",
   t: "ת",
 };
 
@@ -447,6 +504,8 @@ const fieldTlTarget: ParamField = {
     { label: "片假名", value: "katakana" },
     { label: "韩文", value: "hangul" },
     { label: "伪中国语", value: "pseudo-chinese" },
+    { label: "简→繁", value: "s2t" },
+    { label: "繁→简", value: "t2s" },
     { label: "—— 欧洲 ——", value: "" },
     { label: "西里尔字母", value: "cyrillic" },
     { label: "希腊字母", value: "greek" },
@@ -482,8 +541,9 @@ function greedyMap(s: string, table: Record<string, string>): string {
     let found = false;
     for (let l = 3; l >= 1; l--) {
       const sub = s.slice(i, i + l);
-      if (table[sub] !== undefined) {
-        r += table[sub];
+      const m = table[sub] ?? table[sub.toLowerCase()];
+      if (m !== undefined) {
+        r += m;
         i += l;
         found = true;
         break;
@@ -508,7 +568,10 @@ function latinToCyrillicFn(s: string): string {
       const isUpper =
         sub[0] === sub[0]?.toUpperCase() && sub[0] !== sub[0]?.toLowerCase();
       const table = isUpper ? latinToCyrillicUpper : latinToCyrillicLower;
-      const match = table[lower];
+      const match =
+        table[sub] ??
+        table[lower] ??
+        (isUpper ? latinToCyrillicLower[lower] : latinToCyrillicUpper[sub]);
       if (match) {
         r +=
           isUpper && match.length > 0
@@ -739,6 +802,11 @@ export function transliterate(input: string, target: string): string {
 
       case "pseudo-chinese":
         return pseudoChinese(input);
+
+      case "s2t":
+        return cvtS2t(input);
+      case "t2s":
+        return cvtT2s(input);
 
       case "cyrillic":
         return latinToCyrillicFn(tl(input));

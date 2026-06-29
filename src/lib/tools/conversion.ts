@@ -89,7 +89,7 @@ export const conversionTools: ToolDef[] = [
   {
     id: "timestamp",
     name: "时间戳",
-    params: [fieldTsDirection, fieldTsUnit],
+    params: [fieldTsUnit, fieldTsDirection],
     compute: (i, p) => {
       try {
         if (p.dir === "ts2date") {

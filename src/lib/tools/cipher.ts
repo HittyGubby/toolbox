@@ -66,14 +66,14 @@ export const cipherTools: ToolDef[] = [
   {
     id: "aes",
     name: "AES",
-    params: [toggleCipher, fieldKey, fieldIv, fieldMode, fieldPad],
+    params: [fieldKey, fieldIv, fieldMode, fieldPad, toggleCipher],
     compute: (i, p) =>
       aesDo(p.dir === "encrypt", i, p.key, p.iv, p.cmode, p.pad),
   },
   {
     id: "des",
     name: "DES",
-    params: [toggleCipher, fieldKey, fieldIv, fieldMode, fieldPad],
+    params: [fieldKey, fieldIv, fieldMode, fieldPad, toggleCipher],
     compute: (i, p) =>
       desDo(p.dir === "encrypt", i, p.key, p.iv, p.cmode, p.pad),
   },

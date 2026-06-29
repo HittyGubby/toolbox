@@ -25,8 +25,22 @@ function hashSha3256(s: string) {
   return bytesToHex(sha3_256(utf8(s)));
 }
 
+const CRC32_TABLE = (() => {
+  const t = new Int32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let j = 0; j < 8; j++) c = c & 1 ? (c >>> 1) ^ 0xedb88320 : c >>> 1;
+    t[i] = c;
+  }
+  return t;
+})();
+
 function hashCrc32(s: string) {
-  return CryptoJS.CRC32(s).toString(CryptoJS.enc.Hex);
+  let crc = 0xffffffff;
+  for (let i = 0; i < s.length; i++) {
+    crc = (crc >>> 8) ^ CRC32_TABLE[(crc ^ s.charCodeAt(i)) & 0xff];
+  }
+  return ((crc ^ 0xffffffff) >>> 0).toString(16).padStart(8, "0");
 }
 
 export const hashTools: ToolDef[] = [
