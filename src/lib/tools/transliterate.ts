@@ -65,7 +65,8 @@ const latinToArabic: Record<string, string> = {
   b: "ب",
   t: "ت",
   j: "ج",
-  h: "ح",
+  h: "ه",
+  H: "ح",
   d: "د",
   r: "ر",
   z: "ز",
@@ -114,6 +115,11 @@ const latinToArmenian: Record<string, string> = {
   dzh: "ջ",
   ch: "չ",
   ts: "ց",
+  zh: "ժ",
+  sh: "շ",
+  gh: "ղ",
+  "t'": "թ",
+  "ch'": "ճ",
   "r'": "ր",
   "k'": "ք",
   "p'": "փ",
@@ -133,6 +139,7 @@ const latinToArmenian: Record<string, string> = {
   k: "կ",
   h: "հ",
   j: "ձ",
+  m: "մ",
   n: "ն",
   o: "ո",
   p: "պ",
@@ -738,9 +745,9 @@ export function transliterate(input: string, target: string): string {
       case "greek":
         return greedyMap(tl(input), latinToGreek);
       case "arabic":
-        return greedyMap(tl(input).toLowerCase(), latinToArabic);
+        return greedyMap(tl(input), latinToArabic);
       case "hebrew":
-        return greedyMap(tl(input).toLowerCase(), latinToHebrew);
+        return greedyMap(tl(input), latinToHebrew);
       case "armenian":
         return greedyMap(tl(input).toLowerCase(), latinToArmenian);
       case "georgian":

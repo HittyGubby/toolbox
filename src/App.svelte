@@ -179,9 +179,9 @@
         {#each groups as g}
           <div class="relative">
             <button
-              class="btn btn-ghost rounded-none border-b-2 {activeInGroup(g)
-                ? 'border-primary text-primary'
-                : 'border-transparent'}"
+               class="btn btn-ghost rounded-none border-b-2 whitespace-nowrap {activeInGroup(g)
+                 ? 'border-primary text-primary'
+                 : 'border-transparent'}"
               onclick={(e) => {
                 e.stopPropagation();
                 openDropdown = openDropdown === g.id ? null : g.id;
