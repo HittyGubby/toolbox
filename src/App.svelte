@@ -1,12 +1,7 @@
 <script lang="ts">
-  import {
-    groups,
-    type ToolDef,
-    type ToolSubgroup,
-    isTool,
-    isToolSubgroup,
-  } from "./lib/tools/compute";
+  import { groups, type ToolDef } from "./lib/tools/compute";
   import { Sun, Moon, ArrowRightLeft, Copy, Play } from "lucide-svelte";
+  import ColorPicker from "./lib/ColorPicker.svelte";
 
   const browser = typeof window !== "undefined";
   const STORAGE_KEY = "toolbox-state";
@@ -18,6 +13,7 @@
   let params = $state<Record<string, string>>({});
   let processing = $state(false);
   let openDropdown = $state<string | null>(null);
+  let themePopupOpen = $state(false);
 
   let outputIsImage = $derived(output.startsWith("data:image"));
 
@@ -61,10 +57,7 @@
     })();
     if (saved) {
       const found = groups
-        .flatMap((g: (typeof groups)[number]) => g.children)
-        .flatMap((c: ToolDef | ToolSubgroup) =>
-          isToolSubgroup(c) ? c.children : [c as ToolDef],
-        )
+        .flatMap((g) => g.children)
         .find((t: ToolDef) => t.id === saved.tool);
       if (found) {
         activeTool = found;
@@ -121,6 +114,18 @@
     saveState();
   }
 
+  async function copyOutput() {
+    if (outputIsImage) {
+      const resp = await fetch(output);
+      const blob = await resp.blob();
+      await navigator.clipboard.write([
+        new ClipboardItem({ [blob.type]: blob }),
+      ]);
+    } else {
+      await navigator.clipboard.writeText(output);
+    }
+  }
+
   function swap() {
     input = output;
     output = "";
@@ -151,36 +156,55 @@
     }
   }
 
+  function applyThemeColor(hex: string) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    document.documentElement.style.setProperty("--color-primary", hex);
+    document.documentElement.style.setProperty(
+      "--color-primary-content",
+      lum > 128 ? "#000000" : "#ffffff",
+    );
+  }
+
+  const DEFAULT_PRIMARY = "#3b82f6";
+  let primaryColor = $state(DEFAULT_PRIMARY);
+  if (browser) {
+    const saved = localStorage.getItem("toolbox-primary");
+    if (saved) primaryColor = saved;
+    applyThemeColor(primaryColor);
+  }
+  let primaryColorLum = $derived(
+    (() => {
+      const r = parseInt(primaryColor.slice(1, 3), 16);
+      const g = parseInt(primaryColor.slice(3, 5), 16);
+      const b = parseInt(primaryColor.slice(5, 7), 16);
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    })(),
+  );
+
   function activeInGroup(g: (typeof groups)[number]): boolean {
-    return !!g.children
-      .flatMap((c: ToolDef | ToolSubgroup) =>
-        isToolSubgroup(c) ? c.children : [c as ToolDef],
-      )
-      .find((t: ToolDef) => t.id === activeTool.id);
+    return !!g.children.find((t: ToolDef) => t.id === activeTool.id);
   }
 </script>
 
 <svelte:window
   onkeydown={handleKeydown}
-  onclick={() => (openDropdown = null)}
+  onclick={() => {
+    openDropdown = null;
+    themePopupOpen = false;
+  }}
 />
 
 <div class="flex flex-col h-dvh overflow-hidden bg-base-200">
   <header class="bg-base-100 border-b border-base-300 sticky top-0 z-30 w-full">
     <div class="flex items-center justify-between px-4 py-3 w-full">
-      <a
-        href="#"
-        class="font-bold w-20"
-        onclick={(e) => {
-          e.preventDefault();
-          open("https://github.com/HittyGubby/toolbox");
-        }}>Toolbox</a
-      >
-      <div class="flex items-center justify-center gap-2 flex-1">
+      <div class="flex items-center justify-start gap-1 flex-1">
         {#each groups as g}
           <div class="relative">
             <button
-              class="btn btn-ghost rounded-none border-b-2 whitespace-nowrap {activeInGroup(
+              class="btn btn-ghost rounded-none border-b-2 whitespace-nowrap px-2 {activeInGroup(
                 g,
               )
                 ? 'border-primary text-primary'
@@ -193,53 +217,83 @@
               {g.name}
             </button>
             {#if openDropdown === g.id}
+              <!-- svelte-ignore a11y_click_events_have_key_events -->
+              <!-- svelte-ignore a11y_no_static_element_interactions -->
               <div
-                class="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-base-100 rounded-box shadow-lg border border-base-200 p-1 min-w-40 z-50"
+                class="absolute top-full left-0 mt-1 bg-base-100 rounded-box shadow-lg border border-base-200 p-1 min-w-40 z-50"
                 onclick={(e) => e.stopPropagation()}
               >
                 {#each g.children as item}
-                  {#if isTool(item)}
-                    <button
-                      class="btn btn-ghost w-full justify-start font-normal rounded"
-                      class:btn-primary={activeTool.id === item.id}
-                      onclick={() => selectTool(item)}
-                    >
-                      {item.name}
-                    </button>
-                  {:else if isToolSubgroup(item)}
-                    <div
-                      class="px-3 pt-1 pb-0.5 text-sm font-semibold text-base-content/50"
-                    >
-                      {item.name}
-                    </div>
-                    {#each item.children as sub}
-                      <button
-                        class="btn btn-ghost w-full justify-start font-normal rounded"
-                        class:btn-primary={activeTool.id === sub.id}
-                        onclick={() => selectTool(sub)}
-                      >
-                        {sub.name}
-                      </button>
-                    {/each}
-                  {/if}
+                  <button
+                    class="btn btn-ghost w-full justify-start font-normal rounded"
+                    class:btn-primary={activeTool.id === item.id}
+                    onclick={() => selectTool(item)}
+                  >
+                    {item.name}
+                  </button>
                 {/each}
               </div>
             {/if}
           </div>
         {/each}
       </div>
-      <div class="flex justify-end w-20 shrink-0">
-        <button
-          class="btn btn-ghost btn-square"
-          onclick={toggleTheme}
-          aria-label="切换主题"
-        >
-          {#if theme === "light"}
-            <Moon class="w-5 h-5" />
-          {:else}
-            <Sun class="w-5 h-5" />
+      <div class="flex justify-end shrink-0">
+        <div class="relative">
+          <button
+            class="btn btn-square border-0"
+            style="background: {primaryColor}; color: {primaryColorLum > 128
+              ? '#000'
+              : '#fff'}"
+            onclick={(e) => {
+              e.stopPropagation();
+              themePopupOpen = !themePopupOpen;
+            }}
+            aria-label="主题设置"
+          >
+            {#if theme === "light"}
+              <Sun class="w-5 h-5" />
+            {:else}
+              <Moon class="w-5 h-5" />
+            {/if}
+          </button>
+          {#if themePopupOpen}
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <div
+              class="absolute top-full right-0 mt-1 bg-base-100 rounded-box shadow-lg border border-base-200 p-3 z-50 min-w-44"
+              onclick={(e) => e.stopPropagation()}
+            >
+              <div class="flex gap-1 mb-3">
+                <button
+                  class="btn btn-sm flex-1 {theme === 'light'
+                    ? 'btn-primary'
+                    : 'btn-soft'}"
+                  onclick={() => {
+                    toggleTheme();
+                  }}><Sun class="w-4 h-4" /></button
+                >
+                <button
+                  class="btn btn-sm flex-1 {theme === 'dark'
+                    ? 'btn-primary'
+                    : 'btn-soft'}"
+                  onclick={() => {
+                    toggleTheme();
+                  }}><Moon class="w-4 h-4" /></button
+                >
+              </div>
+              <ColorPicker
+                value={primaryColor}
+                onchange={(hex) => {
+                  primaryColor = hex;
+                  applyThemeColor(hex);
+                  localStorage.setItem("toolbox-primary", hex);
+                }}
+                size="w-full h-10"
+                align="right"
+              />
+            </div>
           {/if}
-        </button>
+        </div>
       </div>
     </div>
   </header>
@@ -284,10 +338,7 @@
         <button class="btn btn-soft w-full md:flex-none" onclick={swap}>
           <ArrowRightLeft class="w-4 h-4 shrink-0" /> 交换
         </button>
-        <button
-          class="btn btn-soft w-full md:flex-none"
-          onclick={() => navigator.clipboard.writeText(output)}
-        >
+        <button class="btn btn-soft w-full md:flex-none" onclick={copyOutput}>
           <Copy class="w-4 h-4 shrink-0" /> 复制
         </button>
 
@@ -338,12 +389,12 @@
                   onParamChange(f.key, (e.target as HTMLInputElement).value)}
               />
             {:else if f.type === "color"}
-              <input
-                type="color"
-                class="input input-bordered w-full p-0.5"
-                value={params[f.key] ?? f.default}
-                oninput={(e) =>
-                  onParamChange(f.key, (e.target as HTMLInputElement).value)}
+              {@const colorVal = params[f.key] ?? f.default}
+              <ColorPicker
+                value={colorVal}
+                onchange={(hex) => onParamChange(f.key, hex)}
+                size="w-full h-10"
+                direction="up"
               />
             {/if}
           {/each}
@@ -367,7 +418,7 @@
       </div>
     </div>
 
-    <div class="text-sm text-base-content/30 text-center">
+    <div class="text-sm text-base-content/30 text-center hidden md:block">
       Ctrl+Enter 转换 · Ctrl+Shift+I 交换
     </div>
   </main>

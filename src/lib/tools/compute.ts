@@ -1,5 +1,5 @@
-import type { ToolDef, ToolSubgroup, GroupDef, ParamField } from "./index";
-export type { ToolDef, ToolSubgroup, GroupDef, ParamField };
+import type { ToolDef, GroupDef, ParamField } from "./index";
+export type { ToolDef, GroupDef, ParamField };
 
 import { hashTools } from "./hash";
 import { encodingTools } from "./encoding";
@@ -58,23 +58,3 @@ export const groups: GroupDef[] = [
 ];
 
 export const tools = all;
-
-export function getTool(id: string): ToolDef | undefined {
-  return all.find((t) => t.id === id);
-}
-
-export function flattenTools(): ToolDef[] {
-  return all;
-}
-
-function isSubgroup(item: any): item is ToolSubgroup {
-  return "children" in item && !("params" in item);
-}
-
-export function isTool(item: any): item is ToolDef {
-  return "params" in item;
-}
-
-export function isToolSubgroup(item: any): item is ToolSubgroup {
-  return isSubgroup(item);
-}

@@ -38,24 +38,41 @@ export function titleCase(s: string): string {
 }
 
 export function caseConvert(i: string, fmt: string): string {
-  const words = i.match(/[a-z0-9]+/gi) || [];
   switch (fmt) {
     case "camel":
-      return words
+      return i
+        .split(/[^a-z0-9]+/i)
+        .filter(Boolean)
         .map((w, idx) => (idx === 0 ? w.toLowerCase() : cap(w)))
         .join("");
     case "pascal":
-      return words.map(cap).join("");
+      return i
+        .split(/[^a-z0-9]+/i)
+        .filter(Boolean)
+        .map(cap)
+        .join("");
     case "snake":
-      return words.map((w) => w.toLowerCase()).join("_");
+      return i
+        .replace(/[^a-z0-9]+/gi, "_")
+        .toLowerCase()
+        .replace(/^_+|_+$/g, "")
+        .replace(/_+/g, "_");
     case "constant":
-      return words.map((w) => w.toUpperCase()).join("_");
+      return i
+        .replace(/[^a-z0-9]+/gi, "_")
+        .toUpperCase()
+        .replace(/^_+|_+$/g, "")
+        .replace(/_+/g, "_");
     case "kebab":
-      return words.map((w) => w.toLowerCase()).join("-");
+      return i
+        .replace(/[^a-z0-9]+/gi, "-")
+        .toLowerCase()
+        .replace(/^-+|-+$/g, "")
+        .replace(/-+/g, "-");
     case "lower":
-      return words.map((w) => w.toLowerCase()).join(" ");
+      return i.toLowerCase();
     case "upper":
-      return words.map((w) => w.toUpperCase()).join(" ");
+      return i.toUpperCase();
     case "sentence":
       return sentenceCase(i);
     case "title":

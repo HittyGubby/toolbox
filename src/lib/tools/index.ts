@@ -19,15 +19,8 @@ export interface ToolDef {
   ) => string | Promise<string>;
 }
 
-export interface ToolSubgroup {
-  name: string;
-  children: ToolDef[];
-}
-
-export type DropdownItem = ToolDef | ToolSubgroup;
-
 export interface GroupDef {
   id: string;
   name: string;
-  children: DropdownItem[];
+  children: ToolDef[];
 }

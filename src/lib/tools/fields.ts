@@ -104,18 +104,29 @@ export const fieldQrSize: ParamField = {
   ],
 };
 
+export const fieldQrFormat: ParamField = {
+  key: "format",
+  label: "格式",
+  type: "select",
+  default: "png",
+  options: [
+    { label: "PNG", value: "png" },
+    { label: "SVG", value: "svg" },
+  ],
+};
+
 export const fieldQrDark: ParamField = {
   key: "dark",
   label: "前景色",
   type: "color",
-  default: "#000000",
+  default: "#000000ff",
 };
 
 export const fieldQrLight: ParamField = {
   key: "light",
   label: "背景色",
   type: "color",
-  default: "#ffffff",
+  default: "#ffffffff",
 };
 
 export const fieldSha: ParamField = {

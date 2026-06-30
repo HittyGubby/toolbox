@@ -1,18 +1,28 @@
 import QRCode from "qrcode";
-import { fieldQrSize, fieldQrDark, fieldQrLight } from "./fields";
+import { fieldQrSize, fieldQrDark, fieldQrLight, fieldQrFormat } from "./fields";
 import type { ToolDef } from "./index";
 
 export const extraTools: ToolDef[] = [
   {
     id: "qr",
     name: "二维码",
-    params: [fieldQrDark, fieldQrLight, fieldQrSize],
-    compute: async (i, p) =>
-      QRCode.toDataURL(i, {
+    params: [fieldQrDark, fieldQrLight, fieldQrSize, fieldQrFormat],
+    compute: async (i, p) => {
+      if (p.format === "svg") {
+        const svg = await QRCode.toString(i, {
+          type: "svg",
+          width: +p.size,
+          color: { dark: p.dark, light: p.light },
+          margin: 2,
+        });
+        return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+      }
+      return QRCode.toDataURL(i, {
         width: +p.size,
         color: { dark: p.dark, light: p.light },
         margin: 2,
-      }),
+      });
+    },
   },
   {
     id: "stats",
