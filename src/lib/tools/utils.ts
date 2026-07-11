@@ -20,7 +20,9 @@ export function cap(s: string): string {
 }
 
 export function sentenceCase(s: string): string {
-  return s.replace(/(^\s*\p{L})|([.!?]\s*\p{L})/gu, (m) => m.toUpperCase());
+  return s
+    .toLowerCase()
+    .replace(/(^\s*\p{L})|([.!?]\s*\p{L})/gu, (m) => m.toUpperCase());
 }
 
 export function titleCase(s: string): string {
