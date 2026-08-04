@@ -8,6 +8,10 @@ import type { ToolDef, ParamField } from "./index";
 
 const cvtS2t = OpenCC.Converter({ from: "cn", to: "twp" });
 const cvtT2s = OpenCC.Converter({ from: "twp", to: "cn" });
+const cvtS2jp = OpenCC.Converter({ from: "cn", to: "jp" });
+const cvtJp2s = OpenCC.Converter({ from: "jp", to: "cn" });
+const cvtT2jp = OpenCC.Converter({ from: "tw", to: "jp" });
+const cvtJp2t = OpenCC.Converter({ from: "jp", to: "tw" });
 
 // ──── Mapping tables: Latin → Target script ────
 const latinToGreek: Record<string, string> = {
@@ -504,8 +508,9 @@ const fieldTlTarget: ParamField = {
     { label: "片假名", value: "katakana" },
     { label: "韩文", value: "hangul" },
     { label: "伪中国语", value: "pseudo-chinese" },
-    { label: "简→繁", value: "s2t" },
-    { label: "繁→简", value: "t2s" },
+    { label: "简体中文", value: "zh-cn" },
+    { label: "繁體中文", value: "zh-tw" },
+    { label: "日文汉字", value: "ja" },
     { label: "—— 欧洲 ——", value: "" },
     { label: "西里尔字母", value: "cyrillic" },
     { label: "希腊字母", value: "greek" },
@@ -778,6 +783,33 @@ function pseudoChinese(s: string): string {
   return noKana.replace(/([^\w\s])\1+/g, "$1");
 }
 
+type CjkSource = "cn" | "tw" | "jp" | null;
+
+function detectCjkSource(s: string): CjkSource {
+  if (/[\u3040-\u309F\u30A0-\u30FF]/.test(s)) return "jp";
+  if (cvtS2t(s) !== s) return "cn";
+  if (cvtT2s(s) !== s) return cvtJp2t(s) !== s ? "jp" : "tw";
+  return null;
+}
+
+function toCjk(input: string, target: "zh-cn" | "zh-tw" | "ja"): string {
+  const src = detectCjkSource(input);
+  switch (target) {
+    case "zh-cn":
+      if (src === "tw") return cvtT2s(input);
+      if (src === "jp") return cvtJp2s(input);
+      return input;
+    case "zh-tw":
+      if (src === "cn") return cvtS2t(input);
+      if (src === "jp") return cvtJp2t(input);
+      return input;
+    case "ja":
+      if (src === "cn") return cvtS2jp(input);
+      if (src === "tw") return cvtT2jp(input);
+      return input;
+  }
+}
+
 // ──── Main ────
 
 export function transliterate(input: string, target: string): string {
@@ -803,10 +835,10 @@ export function transliterate(input: string, target: string): string {
       case "pseudo-chinese":
         return pseudoChinese(input);
 
-      case "s2t":
-        return cvtS2t(input);
-      case "t2s":
-        return cvtT2s(input);
+      case "zh-cn":
+      case "zh-tw":
+      case "ja":
+        return toCjk(input, target);
 
       case "cyrillic":
         return latinToCyrillicFn(tl(input));
