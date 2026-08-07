@@ -8,7 +8,6 @@ import type { ToolDef, ParamField } from "./index";
 
 const cvtS2t = OpenCC.Converter({ from: "cn", to: "twp" });
 const cvtT2s = OpenCC.Converter({ from: "twp", to: "cn" });
-const cvtS2jp = OpenCC.Converter({ from: "cn", to: "jp" });
 const cvtJp2s = OpenCC.Converter({ from: "jp", to: "cn" });
 const cvtT2jp = OpenCC.Converter({ from: "tw", to: "jp" });
 const cvtJp2t = OpenCC.Converter({ from: "jp", to: "tw" });
@@ -783,30 +782,18 @@ function pseudoChinese(s: string): string {
   return noKana.replace(/([^\w\s])\1+/g, "$1");
 }
 
-type CjkSource = "cn" | "tw" | "jp" | null;
-
-function detectCjkSource(s: string): CjkSource {
-  if (/[\u3040-\u309F\u30A0-\u30FF]/.test(s)) return "jp";
-  if (cvtS2t(s) !== s) return "cn";
-  if (cvtT2s(s) !== s) return cvtJp2t(s) !== s ? "jp" : "tw";
-  return null;
-}
-
-function toCjk(input: string, target: "zh-cn" | "zh-tw" | "ja"): string {
-  const src = detectCjkSource(input);
+function toCjk(
+  input: string,
+  target: "zh-cn" | "zh-tw" | "ja",
+): string {
+  // 不依赖来源检测，通过连续转换强制得到目标文字，可处理简/繁/日混杂输入
   switch (target) {
     case "zh-cn":
-      if (src === "tw") return cvtT2s(input);
-      if (src === "jp") return cvtJp2s(input);
-      return input;
+      return cvtJp2s(cvtT2s(input));
     case "zh-tw":
-      if (src === "cn") return cvtS2t(input);
-      if (src === "jp") return cvtJp2t(input);
-      return input;
+      return cvtS2t(cvtJp2t(input));
     case "ja":
-      if (src === "cn") return cvtS2jp(input);
-      if (src === "tw") return cvtT2jp(input);
-      return input;
+      return cvtT2jp(cvtS2t(input));
   }
 }
 

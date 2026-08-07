@@ -7,6 +7,7 @@ import { cipherTools } from "./cipher";
 import { conversionTools } from "./conversion";
 import { extraTools } from "./extra-tools";
 import { transliterateTool } from "./transliterate";
+import { generateTools } from "./generate-tools";
 
 const all: ToolDef[] = [
   ...hashTools,
@@ -14,6 +15,7 @@ const all: ToolDef[] = [
   ...cipherTools,
   ...conversionTools,
   ...extraTools,
+  ...generateTools,
   transliterateTool,
 ];
 
@@ -52,6 +54,13 @@ export const groups: GroupDef[] = [
     id: "tools",
     name: "工具",
     children: ["qr", "stats", "transliterate"].map((id) =>
+      all.find((t) => t.id === id)!,
+    ) as ToolDef[],
+  },
+  {
+    id: "generate",
+    name: "生成",
+    children: ["iban", "card", "idcard", "uuid", "phone"].map((id) =>
       all.find((t) => t.id === id)!,
     ) as ToolDef[],
   },

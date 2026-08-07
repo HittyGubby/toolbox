@@ -43,7 +43,7 @@
     initParams();
     output = "";
     saveState();
-    if (autoMode && input.trim()) setTimeout(convert, 0);
+    if (autoMode && (input.trim() || activeTool.noInput)) setTimeout(convert, 0);
   }
 
   // Restore state on mount
@@ -64,13 +64,15 @@
         if (saved.autoMode !== undefined) autoMode = saved.autoMode;
         initParams(saved.params || {});
         if (saved.input) input = saved.input;
-        if (saved.autoMode !== false && saved.input) setTimeout(convert, 0);
+        if (saved.autoMode !== false && (saved.input || found.noInput))
+          setTimeout(convert, 0);
       }
     }
   }
 
   async function convert() {
-    if (!input.trim() || processing) return;
+    if (processing) return;
+    if (!activeTool.noInput && !input.trim()) return;
     processing = true;
     try {
       const r = activeTool.compute(input, params);
@@ -93,7 +95,7 @@
   function onParamChange(key: string, val: string) {
     params = { ...params, [key]: val };
     saveState();
-    if (autoMode && input.trim()) convert();
+    if (autoMode && (input.trim() || activeTool.noInput)) convert();
   }
 
   function fillNow() {
@@ -303,11 +305,19 @@
       class="flex flex-col md:grid md:grid-cols-[1fr_auto_1fr] gap-3 flex-1 min-h-0"
     >
       <div class="flex flex-col gap-1.5 min-h-0 flex-1">
-        <textarea
-          class="textarea textarea-bordered font-mono resize-y w-full flex-1 min-h-32"
-          placeholder="在此输入内容..."
-          bind:value={input}
-          oninput={onInput}></textarea>
+        {#if activeTool.noInput}
+          <div
+            class="flex-1 flex items-center justify-center bg-base-100 border border-base-300 rounded-box min-h-32 text-center px-4 text-sm text-base-content/40"
+          >
+            无需输入内容，点击「生成」即可获得随机结果
+          </div>
+        {:else}
+          <textarea
+            class="textarea textarea-bordered font-mono resize-y w-full flex-1 min-h-32"
+            placeholder="在此输入内容..."
+            bind:value={input}
+            oninput={onInput}></textarea>
+        {/if}
       </div>
 
       <div
@@ -333,7 +343,7 @@
           disabled={processing}
         >
           <Play class="w-4 h-4 shrink-0" />
-          {processing ? "处理中..." : "转换"}
+          {processing ? "处理中..." : activeTool.noInput ? "生成" : "转换"}
         </button>
         <button class="btn btn-soft w-full md:flex-none" onclick={swap}>
           <ArrowRightLeft class="w-4 h-4 shrink-0" /> 交换
