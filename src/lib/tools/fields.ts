@@ -91,11 +91,23 @@ export const fieldCase: ParamField = {
   ],
 };
 
+export const toggleQrMode: ParamField = {
+  key: "mode",
+  label: "模式",
+  type: "toggle",
+  default: "encode",
+  options: [
+    { label: "生成", value: "encode", action: "生成" },
+    { label: "扫描", value: "decode", action: "扫描" },
+  ],
+};
+
 export const fieldQrSize: ParamField = {
   key: "size",
   label: "尺寸",
   type: "select",
   default: "256",
+  dependsOn: { key: "mode", values: ["encode"] },
   options: [
     { label: "128px", value: "128" },
     { label: "256px", value: "256" },
@@ -107,8 +119,9 @@ export const fieldQrSize: ParamField = {
 export const fieldQrFormat: ParamField = {
   key: "format",
   label: "格式",
-  type: "select",
+  type: "toggle",
   default: "png",
+  dependsOn: { key: "mode", values: ["encode"] },
   options: [
     { label: "PNG", value: "png" },
     { label: "SVG", value: "svg" },
@@ -120,6 +133,8 @@ export const fieldQrDark: ParamField = {
   label: "前景色",
   type: "color",
   default: "#000000ff",
+  span: "half",
+  dependsOn: { key: "mode", values: ["encode"] },
 };
 
 export const fieldQrLight: ParamField = {
@@ -127,6 +142,8 @@ export const fieldQrLight: ParamField = {
   label: "背景色",
   type: "color",
   default: "#ffffffff",
+  span: "half",
+  dependsOn: { key: "mode", values: ["encode"] },
 };
 
 export const fieldSha: ParamField = {

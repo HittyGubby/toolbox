@@ -1,26 +1,47 @@
-import QRCode from "qrcode";
-import { fieldQrSize, fieldQrDark, fieldQrLight, fieldQrFormat } from "./fields";
+import {
+  toggleQrMode,
+  fieldQrSize,
+  fieldQrDark,
+  fieldQrLight,
+  fieldQrFormat,
+} from "./fields";
+import { renderQr, scanQr } from "../qr";
 import type { ToolDef } from "./index";
 
 export const extraTools: ToolDef[] = [
   {
     id: "qr",
     name: "二维码",
-    params: [fieldQrDark, fieldQrLight, fieldQrSize, fieldQrFormat],
-    compute: async (i, p) => {
-      if (p.format === "svg") {
-        const svg = await QRCode.toString(i, {
-          type: "svg",
-          width: +p.size,
-          color: { dark: p.dark, light: p.light },
-          margin: 2,
-        });
-        return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+    params: [
+      toggleQrMode,
+      fieldQrFormat,
+      fieldQrDark,
+      fieldQrLight,
+      fieldQrSize,
+    ],
+    inputs: [
+      {
+        kind: "text",
+        when: { key: "mode", values: ["encode"] },
+        placeholder: "输入要编码的文本或链接...",
+      },
+      {
+        kind: "image",
+        when: { key: "mode", values: ["decode"] },
+        hint: "粘贴 (Ctrl+V)、拖拽或点击选择二维码图片",
+        accept: "image/*",
+      },
+    ],
+    compute: (i, p, assets) => {
+      if ((p.mode ?? "encode") === "decode") {
+        if (!assets?.image) throw new Error("请先粘贴或选择一张二维码图片");
+        return scanQr(assets.image);
       }
-      return QRCode.toDataURL(i, {
-        width: +p.size,
-        color: { dark: p.dark, light: p.light },
-        margin: 2,
+      return renderQr(i, {
+        size: +(p.size || 256),
+        dark: p.dark,
+        light: p.light,
+        format: p.format === "svg" ? "svg" : "png",
       });
     },
   },

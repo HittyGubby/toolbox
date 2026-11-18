@@ -123,7 +123,7 @@ export const generateTools: ToolDef[] = [
   {
     id: "iban",
     name: "IBAN",
-    noInput: true,
+    inputs: [{ kind: "none" }],
     params: [fieldIbanCountry, fieldCount],
     compute: (_i, p) => {
       const n = parseCount(p.count);
@@ -135,7 +135,7 @@ export const generateTools: ToolDef[] = [
   {
     id: "card",
     name: "信用卡号",
-    noInput: true,
+    inputs: [{ kind: "none" }],
     params: [fieldCardNetwork, fieldCardBin, fieldCount],
     compute: (_i, p) => {
       const n = parseCount(p.count);
@@ -152,7 +152,7 @@ export const generateTools: ToolDef[] = [
   {
     id: "idcard",
     name: "身份证号",
-    noInput: true,
+    inputs: [{ kind: "none" }],
     params: [fieldIdRegion, fieldIdGender, fieldIdYear, fieldCount],
     compute: (_i, p) => {
       const n = parseCount(p.count);
@@ -166,7 +166,7 @@ export const generateTools: ToolDef[] = [
   {
     id: "uuid",
     name: "UUID",
-    noInput: true,
+    inputs: [{ kind: "none" }],
     params: [fieldUuidVersion, fieldUuidCase, fieldCount],
     compute: (_i, p) => {
       const n = parseCount(p.count);
@@ -180,7 +180,7 @@ export const generateTools: ToolDef[] = [
   {
     id: "phone",
     name: "随机手机号",
-    noInput: true,
+    inputs: [{ kind: "none" }],
     params: [fieldPhoneCountry, fieldPhoneFormat, fieldCount],
     compute: (_i, p) => {
       const n = parseCount(p.count);

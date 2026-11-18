@@ -39,11 +39,35 @@ const fieldTsDirection: ParamField = {
   ],
 };
 
+const pad2 = (n: number) => (n < 10 ? "0" + n : "" + n);
+
 const fieldTsUnit: ParamField = {
   key: "unit",
   label: "单位",
   type: "select",
   default: "ms",
+  action: {
+    label: "实时时间",
+    fill: (v) => {
+      if (v.dir === "date2ts") {
+        const d = new Date();
+        return (
+          d.getFullYear() +
+          "/" +
+          pad2(d.getMonth() + 1) +
+          "/" +
+          pad2(d.getDate()) +
+          " " +
+          pad2(d.getHours()) +
+          ":" +
+          pad2(d.getMinutes()) +
+          ":" +
+          pad2(d.getSeconds())
+        );
+      }
+      return String(Math.floor(Date.now() / (v.unit === "ms" ? 1 : 1000)));
+    },
+  },
   options: [
     { label: "秒 (s)", value: "s" },
     { label: "毫秒 (ms)", value: "ms" },

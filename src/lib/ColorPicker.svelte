@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
+
   interface Props {
     value: string;
     onchange?: (hex: string) => void;
@@ -6,6 +8,14 @@
     size?: string;
     direction?: "down" | "up";
     align?: "left" | "right";
+    /** 组内位置：left/middle/right 时去掉对应侧圆角，便于与相邻控件拼成 join 组 */
+    radius?: "all" | "left" | "middle" | "right";
+    /** 作用于最外层定位容器的额外 class */
+    wrapperClass?: string;
+    /** 渲染在弹层顶部的附加内容 */
+    children?: Snippet;
+    /** 渲染在色块按钮内的图标等内容 */
+    trigger?: Snippet;
   }
 
   let {
@@ -15,7 +25,18 @@
     size = "w-9 h-9",
     direction = "down",
     align = "left",
+    radius = "all",
+    wrapperClass = "",
+    children,
+    trigger,
   }: Props = $props();
+
+  const RADIUS: Record<string, string> = {
+    all: "rounded",
+    left: "rounded-l rounded-r-none",
+    middle: "rounded-none",
+    right: "rounded-l-none rounded-r",
+  };
 
   let open = $state(false);
   let containerEl = $state<HTMLDivElement>();
@@ -124,8 +145,10 @@
     hexText = hex;
   }
 
+  // 外部 value 变化（例如切换编辑目标）时同步色板；自身 emit 的回写跳过
   $effect(() => {
-    if (!open) syncFromValue(value);
+    if (value === lastEmitted) return;
+    syncFromValue(value);
   });
 
   let checker: CanvasPattern | null = null;
@@ -231,8 +254,11 @@
     drawAlpha();
   });
 
+  let lastEmitted = "";
+
   function emit() {
     hexText = currentHex;
+    lastEmitted = currentHex;
     onchange?.(currentHex);
   }
 
@@ -291,7 +317,7 @@
   function calcPosition() {
     if (!containerEl) return;
     const rect = containerEl.getBoundingClientRect();
-    popW = rect.width;
+    popW = Math.max(rect.width, 200);
     if (align === "right") {
       popRight = `${window.innerWidth - rect.right}px`;
     } else {
@@ -324,13 +350,14 @@
   }}
 />
 
-<div class="relative w-full" bind:this={containerEl}>
+<div class="relative w-full {wrapperClass}" bind:this={containerEl}>
   <button
-    class="rounded border border-base-300 cursor-pointer {size} {className}"
+    class="{RADIUS[radius]} border border-base-300 cursor-pointer inline-flex items-center justify-center {size} {className}"
     style="background: {value}"
     onclick={toggle}
     aria-label="选择颜色"
-  ></button>
+    >{@render trigger?.()}</button
+  >
 
   {#if open}
     <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -348,6 +375,7 @@
         : `left: ${popLeft}`};"
       onclick={(e: MouseEvent) => e.stopPropagation()}
     >
+      {@render children?.()}
       <canvas
         bind:this={svCanvas}
         width={sliderW}
